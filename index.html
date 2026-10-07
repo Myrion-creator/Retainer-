@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sagong Produktionsplan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: sticky header + one scrollable board; vertical day rail left, five owner lanes right, live now-line across all of them. */
+:root{
+  --bg:#ECEFE9; --surface:#FFFFFF; --surface-2:#F6F8F4;
+  --ink:#16231B; --muted:#5E6E62; --line:#CFD6CC; --line-strong:#AFBBB1;
+  --fairway:#1F6F43; --fairway-soft:#DEEBE1;
+  --clay:#C44C25; --sand:#AD8422;
+  --c-michael:#54636C; --c-mojo:#1F6F43; --c-lucas:#17707A; --c-sam:#AD8422; --c-timo:#4F68A8;
+  --rail:66px; --day:78px; --radius:7px;
+  --shadow:0 1px 2px rgba(20,38,28,.08), 0 6px 18px rgba(20,38,28,.06);
+  --f-display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",monospace;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#0E1512; --surface:#18221C; --surface-2:#131C17;
+  --ink:#E7EEE8; --muted:#93A697; --line:#26332B; --line-strong:#3B4C41;
+  --fairway:#45B37A; --fairway-soft:#15301F;
+  --clay:#FF7A4D; --sand:#E0B964;
+  --c-michael:#93A5AF; --c-mojo:#45B37A; --c-lucas:#38AEBA; --c-sam:#E0B964; --c-timo:#8AA2E0;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0E1512; --surface:#18221C; --surface-2:#131C17;
+  --ink:#E7EEE8; --muted:#93A697; --line:#26332B; --line-strong:#3B4C41;
+  --fairway:#45B37A; --fairway-soft:#15301F;
+  --clay:#FF7A4D; --sand:#E0B964;
+  --c-michael:#93A5AF; --c-mojo:#45B37A; --c-lucas:#38AEBA; --c-sam:#E0B964; --c-timo:#8AA2E0;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.28);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45;margin:0}
+.wrap{padding-inline:16px;padding-block:18px 26px;max-width:1500px;margin:0 auto}
+
+/* ---------- header ---------- */
+.top{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.brand .eyebrow{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+.brand h1{font-family:var(--f-display);font-weight:800;font-size:clamp(25px,4.4vw,38px);line-height:1.02;letter-spacing:-.02em;margin:0;text-wrap:balance}
+.brand .sub{color:var(--muted);font-size:12.5px;margin:6px 0 0}
+.tiles{display:flex;flex-wrap:wrap;gap:8px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:8px 12px;min-width:112px}
+.tile .k{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.tile .v{font-family:var(--f-mono);font-size:18px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
+.tile.live .v{color:var(--clay)}
+.tile.dl .v{color:var(--sand)}
+.bar-outer{height:4px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:7px}
+.bar-inner{height:100%;background:var(--fairway);border-radius:99px;transition:width .6s linear}
+
+/* ---------- controls ---------- */
+.ctrl{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
+.chip{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:99px;padding:5px 11px;cursor:pointer}
+.chip:hover{border-color:var(--line-strong);color:var(--ink)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip:focus-visible,.owner:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
+.spacer{flex:1 1 auto}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);align-items:center}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+
+/* ---------- board ---------- */
+.scroll{position:relative;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);height:min(76vh,880px);overscroll-behavior-x:contain}
+.inner{position:relative;min-width:1040px}
+.head,.body{display:grid;grid-template-columns:var(--rail) repeat(5,minmax(0,1fr))}
+.head{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line-strong)}
+.head .corner{position:sticky;left:0;z-index:21;background:var(--surface);border-right:1px solid var(--line);display:flex;align-items:flex-end;padding:0 0 8px 8px}
+.corner span{font-family:var(--f-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.owner{padding:11px 12px 9px;border-left:1px solid var(--line);background:none;text-align:left;cursor:pointer;font-family:inherit;color:inherit}
+.owner .nm{font-family:var(--f-display);font-weight:700;font-size:14px;letter-spacing:-.01em;display:flex;align-items:center;gap:7px}
+.owner .nm::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--oc);flex:none}
+.owner .ro{font-size:10.5px;color:var(--muted);margin-top:2px;padding-left:16px}
+.owner .ct{font-family:var(--f-mono);font-size:9.5px;color:var(--muted);margin-top:4px;padding-left:16px;letter-spacing:.06em}
+.dim{opacity:.26;filter:saturate(.35)}
+
+.body{position:relative}
+.rail{position:sticky;left:0;z-index:12;background:var(--surface);border-right:1px solid var(--line-strong)}
+.day{height:var(--day);border-bottom:1px solid var(--line);padding:5px 7px 0;position:relative}
+.day .d{font-family:var(--f-mono);font-size:16px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.day .w{font-family:var(--f-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.day.we .d,.day.we .w{color:var(--muted)}
+.day.today{background:var(--fairway-soft)}
+.day.today .d{color:var(--fairway)}
+.timebar{position:absolute;top:0;right:-2px;width:3px;background:var(--clay);border-radius:99px;z-index:14;box-shadow:0 0 8px color-mix(in srgb,var(--clay) 60%,transparent)}
+.lane{position:relative;border-left:1px solid var(--line)}
+.we-band{position:absolute;left:var(--rail);right:0;background:color-mix(in srgb,var(--ink) 4%,transparent);z-index:0;pointer-events:none}
+.gridline{position:absolute;left:var(--rail);right:0;height:1px;background:var(--line);z-index:1;pointer-events:none}
+
+/* ---------- cards ---------- */
+.card{position:absolute;left:4px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--oc);box-shadow:var(--shadow);padding:7px 9px 8px;overflow:hidden;z-index:4}
+.card h3{font-family:var(--f-display);font-weight:700;font-size:12.5px;line-height:1.2;letter-spacing:-.005em;margin:0;text-wrap:balance}
+.card ul{margin:5px 0 0;padding-left:12px}
+.card li{font-size:10.5px;line-height:1.35;color:var(--muted);margin-bottom:1px}
+.card .meta{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.05em;color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums}
+.card .tag{display:inline-block;font-family:var(--f-mono);font-size:8.5px;letter-spacing:.11em;text-transform:uppercase;padding:2px 6px;border-radius:99px;margin-bottom:5px}
+.card .fill{position:absolute;left:0;bottom:0;height:3px;background:var(--oc);opacity:.75}
+.card.is-done{background:var(--surface-2);border-left-color:var(--line-strong)}
+.card.is-done h3{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px;text-decoration-color:var(--line-strong)}
+.card.is-now{border-color:var(--clay);box-shadow:0 0 0 1px var(--clay),var(--shadow)}
+.tag.now{background:var(--clay);color:#fff}
+.tag.next{background:var(--fairway-soft);color:var(--fairway)}
+.tag.done{background:var(--line);color:var(--muted)}
+.card.milestone{border-left-width:3px;border-style:dashed}
+
+/* ---------- bands & now-line ---------- */
+.band{position:absolute;left:var(--rail);right:0;height:0;z-index:16;pointer-events:none}
+.band .rule{position:absolute;left:0;right:0;top:0;border-top:1.5px dashed var(--c-michael)}
+.band .lbl{position:absolute;top:-11px;left:6px;font-family:var(--f-mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;background:var(--c-michael);color:var(--bg);padding:3px 8px;border-radius:99px;white-space:nowrap}
+.band.deadline .rule{border-top:2px solid var(--clay)}
+.band.deadline .lbl{background:var(--clay);color:#fff;font-weight:600}
+.band.past{opacity:.4}
+
+.now{position:absolute;left:0;right:0;height:0;z-index:18;pointer-events:none}
+.now .ln{position:absolute;left:var(--rail);right:0;top:0;border-top:2px solid var(--clay)}
+.now .dot{position:absolute;left:calc(var(--rail) - 4px);top:-4px;width:9px;height:9px;border-radius:50%;background:var(--clay);box-shadow:0 0 0 3px color-mix(in srgb,var(--clay) 28%,transparent)}
+.now .clock{position:sticky;left:3px;display:inline-block;top:0;transform:translateY(-50%);font-family:var(--f-mono);font-size:10px;font-weight:600;font-variant-numeric:tabular-nums;background:var(--clay);color:#fff;padding:2px 5px;border-radius:4px;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.foot{margin-top:12px;font-size:11.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 18px}
+.foot b{color:var(--ink);font-weight:600}
+@media (max-width:620px){
+  .tile{min-width:98px;padding:7px 10px}
+  .tile .v{font-size:15px}
+  .scroll{height:min(72vh,720px)}
+}
+</style>
+</head>
+<body style="margin:0">
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <p class="eyebrow">Retainer · Golf Club Sagong</p>
+      <h1>Produktionsplan Oktober</h1>
+      <p class="sub">7. – 26. Oktober 2026 · Website, Social Content, Shoot &amp; Präsentation</p>
+    </div>
+    <div class="tiles">
+      <div class="tile live"><div class="k">Jetzt</div><div class="v" id="t-clock">--:--:--</div></div>
+      <div class="tile dl"><div class="k">Deadline 22.10.</div><div class="v" id="t-dl">–</div></div>
+      <div class="tile"><div class="k">Präsentation 26.10.</div><div class="v" id="t-pres">–</div></div>
+      <div class="tile" style="min-width:150px"><div class="k">Zeitraum verbraucht</div><div class="v" id="t-pct">–</div><div class="bar-outer"><div class="bar-inner" id="t-bar" style="width:0%"></div></div></div>
+    </div>
+  </header>
+
+  <div class="ctrl">
+    <button class="chip" id="btn-now" type="button">↓ Zu jetzt springen</button>
+    <button class="chip" id="btn-all" type="button">Alle Personen</button>
+    <div class="spacer"></div>
+    <div class="legend">
+      <span><i style="background:var(--clay)"></i>Live-Zeitlinie</span>
+      <span><i style="background:var(--fairway)"></i>läuft</span>
+      <span><i style="background:var(--line-strong)"></i>erledigt</span>
+      <span><i style="background:var(--sand)"></i>Deadline</span>
+    </div>
+  </div>
+
+  <div class="scroll" id="scroll">
+    <div class="inner">
+      <div class="head" id="head"></div>
+      <div class="body" id="body"></div>
+    </div>
+  </div>
+
+  <p class="foot">
+    <span><b>Zoom-Calls:</b> Fr 09.10. 13:00 · Mi 14.10. 20:00 · Do 22.10. 14:00</span>
+    <span><b>Shoot-Fenster:</b> 17. oder 18.10.</span>
+    <span>Zeiten in lokaler Gerätezeit (Plan = MESZ).</span>
+  </p>
+</div>
+
+<script>
+(function(){
+  var DAY = 78, START = new Date(2026,9,7,0,0,0), END = new Date(2026,9,27,0,0,0);
+  var DAYS = Math.round((END-START)/864e5);
+  var MS = 864e5;
+
+  var OWNERS = [
+    {id:'michael', name:'Michael Bilgeri', role:'Lead · Moderation', c:'var(--c-michael)'},
+    {id:'mojo',    name:'Mojo',            role:'Web · Produktion',  c:'var(--c-mojo)'},
+    {id:'lucas',   name:'Lucas Baume',     role:'Web · Social',      c:'var(--c-lucas)'},
+    {id:'sam',     name:'Sam Moodie',      role:'Content',           c:'var(--c-sam)'},
+    {id:'timo',    name:'Timo',            role:'Drone · Grading',   c:'var(--c-timo)'}
+  ];
+
+  function d(day,h,m){ return new Date(2026,9,day,h||0,m||0,0); }
+
+  var TASKS = [
+    {o:'mojo', t:'Website im Apple-Style mit Lucas', s:d(7,9), e:d(14,20),
+     b:['Grunddesign fertig für Bilder-Import','Gemeinsam mit Lucas Baume'], m:'07.10. → Deadline 14.10.'},
+    {o:'lucas', t:'Website im Apple-Style mit Mojo', s:d(7,9), e:d(14,20),
+     b:['Grunddesign fertig für Bilder-Import','Gemeinsam mit Mojo'], m:'07.10. → Deadline 14.10.'},
+    {o:'sam', t:'Content Web + Social sammeln', s:d(7,9), e:d(14,20),
+     b:['Restaurant','Lounge and food','Clips of Claudio – alle','Green-Keeper-Maschine','Doll in the middle of fairway','Claudio Coaching: Course + Range','Content SOZIAL','Talk to Lucas: what’s needed'], m:'07.10. → Deadline 14.10.'},
+
+    {o:'lucas', t:'TikTok Start-up für Sagong', s:d(15,9), e:d(16,23,59),
+     b:['Kanal-Setup und erste Posts','Start 15.10., läuft danach fortlaufend'], m:'Start 15.10.'},
+
+    {o:'mojo', t:'Shoot', s:d(17,8), e:d(18,20),
+     b:['Drone footage golf course','Pro Shop – Gimbal footage','Ball flight path, Heachfild','Photos Team-Side'], m:'17. oder 18.10.'},
+    {o:'lucas', t:'Shoot', s:d(17,8), e:d(18,20),
+     b:['Drone footage golf course','Pro Shop – Gimbal footage','Ball flight path, Heachfild','Photos Team-Side'], m:'17. oder 18.10.'},
+    {o:'timo', t:'Shoot', s:d(17,8), e:d(18,20),
+     b:['Drone footage golf course','Pro Shop – Gimbal footage','Ball flight path, Heachfild','Photos Team-Side'], m:'17. oder 18.10.'},
+
+    {o:'timo', t:'Delivery: colorgraded Footage', s:d(19,9), e:d(20,20), ms:true,
+     b:['Einzelclips, farbkorrigiert'], m:'Deadline 20.10.'},
+    {o:'mojo', t:'WEB finish', s:d(21,9), e:d(21,20), ms:true,
+     b:['Website final, bereit für Review'], m:'Finish 21.10.'},
+    {o:'lucas', t:'Social Mood-Board finish', s:d(21,9), e:d(21,20), ms:true,
+     b:['Mood-Board final, bereit für Review'], m:'Finish 21.10.'},
+    {o:'mojo', t:'Präsentation im Golf Club', s:d(26,10), e:d(26,16), ms:true,
+     b:['Website + Social + Footage zeigen'], m:'26.10.'}
+  ];
+
+  var BANDS = [
+    {t:'Zoom Call · Fr 09.10. 13:00', at:d(9,13)},
+    {t:'Zoom Call · Mi 14.10. 20:00', at:d(14,20)},
+    {t:'Deadline 22. Oktober', at:d(22,23,59), dl:true},
+    {t:'Zoom Call · Do 22.10. 14:00', at:d(22,14)}
+  ];
+
+  function y(dt){ return (dt - START)/MS*DAY; }
+  var WD = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+  /* ---- header row ---- */
+  var head = document.getElementById('head');
+  head.innerHTML = '<div class="corner"><span>Okt 2026</span></div>';
+  OWNERS.forEach(function(o){
+    var n = TASKS.filter(function(t){return t.o===o.id;}).length;
+    var b = document.createElement('button');
+    b.type='button'; b.className='owner'; b.dataset.own=o.id; b.style.setProperty('--oc',o.c);
+    b.innerHTML = '<span class="nm">'+o.name+'</span><span class="ro">'+o.role+'</span>'+
+                  '<span class="ct">'+(o.id==='michael' ? '3 Calls' : n+(n===1?' Task':' Tasks'))+'</span>';
+    head.appendChild(b);
+  });
+
+  /* ---- body: rail + lanes ---- */
+  var body = document.getElementById('body');
+  var rail = document.createElement('div'); rail.className='rail';
+  var todayN = new Date().getDate(), todayM = new Date().getMonth(), todayY = new Date().getFullYear();
+  for(var i=0;i<DAYS;i++){
+    var dt = new Date(START.getTime()+i*MS);
+    var el = document.createElement('div');
+    el.className='day'+((dt.getDay()===0||dt.getDay()===6)?' we':'')+
+      ((dt.getDate()===todayN&&dt.getMonth()===todayM&&dt.getFullYear()===todayY)?' today':'');
+    el.innerHTML='<div class="d">'+dt.getDate()+'</div><div class="w">'+WD[dt.getDay()]+'</div>';
+    rail.appendChild(el);
+  }
+  var timebar = document.createElement('div'); timebar.className='timebar'; timebar.style.height='0px';
+  rail.appendChild(timebar);
+  body.appendChild(rail);
+
+  var lanes = {};
+  OWNERS.forEach(function(o){
+    var l = document.createElement('div'); l.className='lane'; l.dataset.own=o.id;
+    l.style.setProperty('--oc',o.c); l.style.height=(DAYS*DAY)+'px';
+    lanes[o.id]=l; body.appendChild(l);
+  });
+
+  /* weekend shading + day gridlines behind everything */
+  for(var j=0;j<DAYS;j++){
+    var dd = new Date(START.getTime()+j*MS);
+    if(dd.getDay()===0||dd.getDay()===6){
+      var w=document.createElement('div'); w.className='we-band';
+      w.style.top=(j*DAY)+'px'; w.style.height=DAY+'px'; body.appendChild(w);
+    }
+    var g=document.createElement('div'); g.className='gridline'; g.style.top=(j*DAY)+'px'; body.appendChild(g);
+  }
+
+  /* ---- place task cards, packing overlaps into sub-tracks ---- */
+  var cards = [];
+  OWNERS.forEach(function(o){
+    var list = TASKS.filter(function(t){return t.o===o.id;})
+                    .sort(function(a,b){return a.s-b.s;});
+    var tracks = [];
+    list.forEach(function(t){
+      var k = 0;
+      while(k<tracks.length && tracks[k] > t.s.getTime()) k++;
+      if(k===tracks.length) tracks.push(0);
+      tracks[k] = t.e.getTime();
+      t._tr = k;
+    });
+    var n = Math.max(tracks.length,1);
+    list.forEach(function(t){
+      var top = y(t.s), h = Math.max(y(t.e)-y(t.s)-6, t.b.length>4?148:62);
+      var c = document.createElement('div');
+      c.className='card'+(t.ms?' milestone':'');
+      c.style.top=top+'px'; c.style.height=h+'px';
+      c.style.left='calc('+(t._tr*100/n)+'% + 4px)';
+      c.style.width='calc('+(100/n)+'% - 8px)';
+      c.innerHTML='<span class="tag"></span><h3>'+t.t+'</h3>'+
+        '<ul>'+t.b.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>'+
+        '<div class="meta">'+t.m+'</div><div class="fill" style="width:0%"></div>';
+      lanes[o.id].appendChild(c);
+      cards.push({el:c,t:t});
+    });
+  });
+
+  /* ---- bands ---- */
+  var bandEls = BANDS.map(function(b){
+    var el=document.createElement('div');
+    el.className='band'+(b.dl?' deadline':'');
+    el.style.top=y(b.at)+'px';
+    el.innerHTML='<div class="rule"></div><div class="lbl">'+b.t+'</div>';
+    body.appendChild(el);
+    return {el:el,b:b};
+  });
+
+  /* ---- live now-line ---- */
+  var now = document.createElement('div'); now.className='now';
+  now.innerHTML='<div class="ln"></div><div class="dot"></div><span class="clock">--:--</span>';
+  body.appendChild(now);
+  var clockEl = now.querySelector('.clock');
+
+  var p2=function(x){return (x<10?'0':'')+x;};
+  function fmtLeft(ms){
+    if(ms<=0) return 'erreicht';
+    var d_=Math.floor(ms/MS), h=Math.floor(ms%MS/36e5), m=Math.floor(ms%36e5/6e4);
+    return d_>0 ? d_+'T '+p2(h)+'h' : p2(h)+':'+p2(m)+'h';
+  }
+
+  var el_clock=document.getElementById('t-clock'), el_dl=document.getElementById('t-dl'),
+      el_pres=document.getElementById('t-pres'), el_pct=document.getElementById('t-pct'),
+      el_bar=document.getElementById('t-bar');
+  var DL=d(22,23,59), PRES=d(26,10);
+
+  function tick(){
+    var n = new Date(), nt = n.getTime();
+    var top = Math.min(Math.max(y(n),0), DAYS*DAY);
+    var inside = nt>=START.getTime() && nt<=END.getTime();
+    now.style.top = top+'px';
+    now.hidden = !inside;
+    timebar.style.height = top+'px';
+    clockEl.textContent = p2(n.getHours())+':'+p2(n.getMinutes());
+    el_clock.textContent = p2(n.getHours())+':'+p2(n.getMinutes())+':'+p2(n.getSeconds());
+    el_dl.textContent = fmtLeft(DL-nt);
+    el_pres.textContent = fmtLeft(PRES-nt);
+    var pct = Math.min(Math.max((nt-START)/(END-START),0),1);
+    el_pct.textContent = Math.round(pct*100)+'%';
+    el_bar.style.width = (pct*100)+'%';
+
+    cards.forEach(function(c){
+      var s=c.t.s.getTime(), e=c.t.e.getTime(), tag=c.el.querySelector('.tag'), fill=c.el.querySelector('.fill');
+      c.el.classList.remove('is-done','is-now');
+      if(nt>=e){ c.el.classList.add('is-done'); tag.className='tag done'; tag.textContent='erledigt'; fill.style.width='100%'; }
+      else if(nt>=s){ c.el.classList.add('is-now'); tag.className='tag now'; tag.textContent='läuft · '+fmtLeft(e-nt)+' übrig'; fill.style.width=((nt-s)/(e-s)*100)+'%'; }
+      else { tag.className='tag next'; tag.textContent='in '+fmtLeft(s-nt); fill.style.width='0%'; }
+    });
+    bandEls.forEach(function(x){ x.el.classList.toggle('past', nt > x.b.at.getTime()); });
+  }
+  tick(); setInterval(tick,1000);
+
+  /* ---- controls ---- */
+  var scroll=document.getElementById('scroll');
+  function jump(smooth){
+    var top = Math.min(Math.max(y(new Date()),0), DAYS*DAY);
+    scroll.scrollTo({top:Math.max(top-scroll.clientHeight*0.34,0), behavior:smooth?'smooth':'auto'});
+  }
+  jump(false);
+  document.getElementById('btn-now').addEventListener('click',function(){jump(true);});
+
+  var focus=null;
+  function applyFocus(){
+    OWNERS.forEach(function(o){
+      var on = !focus || focus===o.id;
+      lanes[o.id].classList.toggle('dim',!on);
+      head.querySelector('[data-own="'+o.id+'"]').classList.toggle('dim',!on);
+    });
+    document.getElementById('btn-all').classList.toggle('on',!focus);
+  }
+  head.querySelectorAll('.owner').forEach(function(b){
+    b.addEventListener('click',function(){ focus = (focus===b.dataset.own)?null:b.dataset.own; applyFocus(); });
+  });
+  document.getElementById('btn-all').addEventListener('click',function(){ focus=null; applyFocus(); });
+  applyFocus();
+})();
+</script>
+</body>
+</html>
