@@ -114,6 +114,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
 .band{position:absolute;left:var(--rail);right:0;height:0;z-index:16;pointer-events:none}
 .band .rule{position:absolute;left:0;right:0;top:0;border-top:1.5px dashed var(--c-michael)}
 .band .lbl{position:absolute;top:-11px;left:6px;font-family:var(--f-mono);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;background:var(--c-michael);color:var(--bg);padding:3px 8px;border-radius:99px;white-space:nowrap}
+.band.team{right:calc((100% - var(--rail))/5)}
+.band.team .cap{position:absolute;right:-1px;top:-6px;width:2px;height:12px;background:var(--c-michael);border-radius:1px}
 .band.deadline .rule{border-top:2px solid var(--clay)}
 .band.deadline .lbl{background:var(--clay);color:#fff;font-weight:600}
 .band.past{opacity:.4}
@@ -169,7 +171,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
   </div>
 
   <p class="foot">
-    <span><b>Zoom-Calls:</b> Fr 09.10. 13:00 · Mi 14.10. 20:00 · Do 22.10. 14:00</span>
+    <span><b>Zoom Calls</b> – Michael, Mojo, Lucas, Sam (ohne Timo): 09.10. 13:00 · 14.10. 20:00 · 22.10. 14:00</span>
     <span><b>Shoot-Fenster:</b> 17. oder 18.10.</span>
     <span>Zeiten in lokaler Gerätezeit (Plan = MESZ).</span>
   </p>
@@ -186,44 +188,44 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
     {id:'mojo',    name:'Mojo',            role:'Web · Produktion',  c:'var(--c-mojo)'},
     {id:'lucas',   name:'Lucas Baume',     role:'Web · Social',      c:'var(--c-lucas)'},
     {id:'sam',     name:'Sam Moodie',      role:'Content',           c:'var(--c-sam)'},
-    {id:'timo',    name:'Timo',            role:'Drone · Grading',   c:'var(--c-timo)'}
+    {id:'timo',    name:'Timo (Drone etc.)', role:'ohne Zoom Calls',   c:'var(--c-timo)'}
   ];
 
   function d(day,h,m){ return new Date(2026,9,day,h||0,m||0,0); }
 
   var TASKS = [
-    {o:'mojo', t:'Website im Apple-Style mit Lucas', s:d(7,9), e:d(14,20),
-     b:['Grunddesign fertig für Bilder-Import','Gemeinsam mit Lucas Baume'], m:'07.10. → Deadline 14.10.'},
-    {o:'lucas', t:'Website im Apple-Style mit Mojo', s:d(7,9), e:d(14,20),
-     b:['Grunddesign fertig für Bilder-Import','Gemeinsam mit Mojo'], m:'07.10. → Deadline 14.10.'},
-    {o:'sam', t:'Content Web + Social sammeln', s:d(7,9), e:d(14,20),
-     b:['Restaurant','Lounge and food','Clips of Claudio – alle','Green-Keeper-Maschine','Doll in the middle of fairway','Claudio Coaching: Course + Range','Content SOZIAL','Talk to Lucas: what’s needed'], m:'07.10. → Deadline 14.10.'},
+    {o:'mojo', t:'Building website apple style with Lucas', s:d(7,9), e:d(14,20),
+     b:['Grunddesign fertig für bilder import'], m:'Deadline 14th October'},
+    {o:'lucas', t:'Building website apple style with Mojo', s:d(7,9), e:d(14,20),
+     b:['Grunddesign fertig für bilder import'], m:'Deadline 14th October'},
+    {o:'sam', t:'CONTENT WEB', s:d(7,9), e:d(14,20),
+     b:['Restaurant','Lounge and food','Clips of claudio all','Green keeper machine','Doll in the middle of fairway','Claudio coaching on course and range','CONTENT SOZIAL','Talk to Lucas what’s needed'], m:'DEADLINE 14th October'},
 
-    {o:'lucas', t:'TikTok Start-up für Sagong', s:d(15,9), e:d(16,23,59),
-     b:['Kanal-Setup und erste Posts','Start 15.10., läuft danach fortlaufend'], m:'Start 15.10.'},
+    {o:'lucas', t:'TIK TOK Start up for sagong', s:d(15,9), e:d(16,23,59),
+     b:[], m:'Start 15th October'},
 
     {o:'mojo', t:'Shoot', s:d(17,8), e:d(18,20),
-     b:['Drone footage golf course','Pro Shop – Gimbal footage','Ball flight path, Heachfild','Photos Team-Side'], m:'17. oder 18.10.'},
+     b:['Drone footage golf course','pro shop gimbal footage','ball flight path for heachfild','photos team side'], m:'Shoot 17 or 18 October'},
     {o:'lucas', t:'Shoot', s:d(17,8), e:d(18,20),
-     b:['Drone footage golf course','Pro Shop – Gimbal footage','Ball flight path, Heachfild','Photos Team-Side'], m:'17. oder 18.10.'},
+     b:['Drone footage golf course','pro shop gimbal footage','ball flight path for heachfild','photos team side'], m:'Shoot 17 or 18 October'},
     {o:'timo', t:'Shoot', s:d(17,8), e:d(18,20),
-     b:['Drone footage golf course','Pro Shop – Gimbal footage','Ball flight path, Heachfild','Photos Team-Side'], m:'17. oder 18.10.'},
+     b:['Drone footage golf course','pro shop gimbal footage','ball flight path for heachfild','photos team side'], m:'Shoot 17 or 18 October'},
 
-    {o:'timo', t:'Delivery: colorgraded Footage', s:d(19,9), e:d(20,20), ms:true,
-     b:['Einzelclips, farbkorrigiert'], m:'Deadline 20.10.'},
-    {o:'mojo', t:'WEB finish', s:d(21,9), e:d(21,20), ms:true,
-     b:['Website final, bereit für Review'], m:'Finish 21.10.'},
-    {o:'lucas', t:'Social Mood-Board finish', s:d(21,9), e:d(21,20), ms:true,
-     b:['Mood-Board final, bereit für Review'], m:'Finish 21.10.'},
-    {o:'mojo', t:'Präsentation im Golf Club', s:d(26,10), e:d(26,16), ms:true,
-     b:['Website + Social + Footage zeigen'], m:'26.10.'}
+    {o:'timo', t:'DELIVERY', s:d(19,9), e:d(20,20), ms:true,
+     b:['Colorgraded footage single clips'], m:'Deadline 20th October'},
+    {o:'mojo', t:'WEB Finish', s:d(21,9), e:d(21,20), ms:true,
+     b:[], m:'21th October'},
+    {o:'lucas', t:'Sozial mood board', s:d(21,9), e:d(21,20), ms:true,
+     b:[], m:'Finish 21th'},
+    {o:'mojo', t:'Presentation to golf club', s:d(26,10), e:d(26,16), ms:true,
+     b:[], m:'October 26th'}
   ];
 
   var BANDS = [
-    {t:'Zoom Call · Fr 09.10. 13:00', at:d(9,13)},
-    {t:'Zoom Call · Mi 14.10. 20:00', at:d(14,20)},
-    {t:'Deadline 22. Oktober', at:d(22,23,59), dl:true},
-    {t:'Zoom Call · Do 22.10. 14:00', at:d(22,14)}
+    {t:'ZOOM CALL FRIDAY 09.10 13:00', at:d(9,13), team:true},
+    {t:'ZOOM CALL 14th of October 8pm', at:d(14,20), team:true},
+    {t:'ZOOM CALL 22th of October 2pm', at:d(22,14), team:true},
+    {t:'DEADLINE 22 October', at:d(22,23,59), dl:true}
   ];
 
   function y(dt){ return (dt - START)/MS*DAY; }
@@ -296,7 +298,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
       c.style.left='calc('+(t._tr*100/n)+'% + 4px)';
       c.style.width='calc('+(100/n)+'% - 8px)';
       c.innerHTML='<span class="tag"></span><h3>'+t.t+'</h3>'+
-        '<ul>'+t.b.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>'+
+        (t.b.length?'<ul>'+t.b.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>':'')+
         '<div class="meta">'+t.m+'</div><div class="fill" style="width:0%"></div>';
       lanes[o.id].appendChild(c);
       cards.push({el:c,t:t});
@@ -306,9 +308,9 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
   /* ---- bands ---- */
   var bandEls = BANDS.map(function(b){
     var el=document.createElement('div');
-    el.className='band'+(b.dl?' deadline':'');
+    el.className='band'+(b.dl?' deadline':'')+(b.team?' team':'');
     el.style.top=y(b.at)+'px';
-    el.innerHTML='<div class="rule"></div><div class="lbl">'+b.t+'</div>';
+    el.innerHTML='<div class="rule"></div>'+(b.team?'<div class="cap"></div>':'')+'<div class="lbl">'+b.t+'</div>';
     body.appendChild(el);
     return {el:el,b:b};
   });
